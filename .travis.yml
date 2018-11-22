@@ -1,0 +1,21 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t ueta/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run ueta/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t ueta/multi-client ./client
+  - docker build -t ueta/multi-nginx ./nginx
+  - docker build -t ueta/multi-server ./server
+  - docker build -t ueta/multi-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push ueta/multi-client
+  - docker push ueta/multi-nginx
+  - docker push ueta/multi-server
+  - docker push ueta/multi-worker
